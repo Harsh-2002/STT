@@ -170,35 +170,9 @@ HTML_TEMPLATE = """
   <meta http-equiv="X-Frame-Options" content="DENY">
   <meta http-equiv="X-XSS-Protection" content="1; mode=block">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta name="theme-color" content="#f5f5f5">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="msapplication-navbutton-color" content="#f5f5f5">
   <title>Transcriber</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDE0QzEzLjY2IDE0IDE1IDEyLjY2IDE1IDExVjVDMTUgMy4zNCAxMy42NiAyIDEyIDJDMTAuMzQgMiA5IDMuMzQgOSA1VjExQzkgMTIuNjYgMTAuMzQgMTQgMTIgMTRaIiBmaWxsPSIjMDAwIi8+CjxwYXRoIGQ9Ik0xOSAxMVYxMUMxOSAxNC44NyAxNS44NyAxOCAxMiAxOEM4LjEzIDE4IDUgMTQuODcgNSAxMVYxMUg3VjExQzcgMTMuNzYgOS4yNCAxNiAxMiAxNkMxNC43NiAxNiAxNyAxMy43NiAxNyAxMVYxMUgxOVoiIGZpbGw9IiMwMDAiLz4KPHBhdGggZD0iTTEyIDIwQzEyIDIwIDEyIDIyIDEwIDIySDE0QzEyIDIyIDEyIDIwIDEyIDIwWiIgZmlsbD0iIzAwMCIvPgo8L3N2Zz4K">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    
-    :root {
-      --primary: #000000;
-      --primary-hover: #333333;
-      --surface: #ffffff;
-      --background: #f5f5f5;
-      --border: #e0e0e0;
-      --text-primary: #000000;
-      --text-secondary: #666666;
-      --text-light: #999999;
-      --danger: #cc0000;
-      --warning: #cc6600;
-      --success: #006600;
-      --radius-sm: 6px;
-      --radius-md: 10px;
-      --radius-lg: 16px;
-      --shadow-sm: none;
-      --shadow-md: none;
-      --shadow-lg: none;
-      --transition: all 0.2s ease;
-    }
-    
     * {
       margin: 0;
       padding: 0;
@@ -206,92 +180,82 @@ HTML_TEMPLATE = """
     }
     
     body {
-      background-color: var(--background);
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f5f5f5;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       line-height: 1.6;
-      color: var(--text-primary);
-      min-height: 100vh;
-      padding: 20px;
+      color: #333;
     }
     
     .container {
       max-width: 600px;
       margin: 0 auto;
       padding: 2rem 1rem;
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     
     .card {
-      background: var(--surface);
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border);
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       padding: 2rem;
       margin-bottom: 2rem;
       width: 100%;
-      transition: var(--transition);
     }
     
     .header {
       text-align: center;
-      margin-bottom: 2.8rem;
+      margin-bottom: 2.5rem;
     }
     
     .header h1 {
       font-size: 2.5rem;
       font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 0.6rem;
-      letter-spacing: -0.025em;
+      color: #000;
+      margin-bottom: 0.5rem;
     }
     
     .header p {
-      color: var(--text-secondary);
+      color: #666;
       font-size: 1.1rem;
-      font-weight: 400;
     }
     
     .form-section {
-      margin-bottom: 2.2rem;
+      margin-bottom: 2rem;
     }
     
     .form-group {
-      margin-bottom: 1.8rem;
+      margin-bottom: 1.5rem;
     }
     
     .form-label {
       display: block;
       font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 0.6rem;
+      color: #000;
+      margin-bottom: 0.5rem;
       font-size: 0.95rem;
     }
     
     .form-input {
       width: 100%;
-      padding: 0.9rem 1.1rem;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
+      padding: 0.75rem 1rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
       font-size: 1rem;
-      transition: var(--transition);
-      background: var(--surface);
-      color: var(--text-primary);
+      transition: border-color 0.2s ease;
+      background: white;
     }
     
     .form-input:focus {
       outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.15);
-    }
-    
-    .form-input::placeholder {
-      color: var(--text-light);
+      border-color: #000;
     }
     
     .model-selection {
       display: flex;
-      gap: 0.8rem;
+      gap: 0.5rem;
       margin-bottom: 1.5rem;
     }
     
@@ -307,49 +271,38 @@ HTML_TEMPLATE = """
     .model-option label {
       display: block;
       padding: 1rem;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      background: var(--surface);
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      background: white;
       cursor: pointer;
       text-align: center;
-      font-weight: 500;
-      transition: var(--transition);
-      color: var(--text-primary);
+      font-weight: 600;
+      transition: all 0.2s ease;
     }
     
     .model-option input[type="radio"]:checked + label {
-      border-color: var(--primary);
-      background: rgba(0, 102, 255, 0.05);
-      color: var(--primary);
-      box-shadow: var(--shadow-sm);
+      border-color: #000;
+      background: #f8f9fa;
     }
     
     .model-option label:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
+      border-color: #000;
+      transform: translateY(-1px);
     }
     
     .form-select {
       width: 100%;
-      padding: 0.9rem 1.1rem;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
+      padding: 0.75rem 1rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
       font-size: 1rem;
-      background: var(--surface);
+      background: white;
       cursor: pointer;
-      color: var(--text-primary);
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 1rem center;
-      background-size: 16px;
-      padding-right: 2.5rem;
     }
     
     .form-select:focus {
       outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.15);
+      border-color: #000;
     }
     
     .file-input-wrapper {
@@ -360,25 +313,22 @@ HTML_TEMPLATE = """
     
     .file-input {
       width: 100%;
-      padding: 0.9rem 1.1rem;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
+      padding: 0.75rem 1rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
       font-size: 1rem;
-      background: var(--surface);
+      background: white;
       cursor: pointer;
-      color: var(--text-primary);
-      transition: var(--transition);
     }
     
     .file-input:focus {
       outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.15);
+      border-color: #000;
     }
     
     .divider {
       text-align: center;
-      margin: 2.2rem 0;
+      margin: 2rem 0;
       position: relative;
       display: flex;
       align-items: center;
@@ -388,47 +338,46 @@ HTML_TEMPLATE = """
       content: '';
       flex: 1;
       height: 1px;
-      background: var(--border);
+      background: #e0e0e0;
     }
     
     .divider::after {
       content: '';
       flex: 1;
       height: 1px;
-      background: var(--border);
+      background: #e0e0e0;
     }
     
     .divider span {
-      padding: 0 1.2rem;
-      color: var(--text-secondary);
-      font-weight: 500;
+      padding: 0 1rem;
+      color: #666;
+      font-weight: 600;
       font-size: 0.9rem;
-      background: var(--surface);
+      background: white;
       margin: 0 0.5rem;
     }
     
     .btn {
       display: inline-block;
-      padding: 0.9rem 1.5rem;
+      padding: 1rem 2rem;
       border: none;
-      border-radius: var(--radius-md);
+      border-radius: 8px;
       font-size: 1rem;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
-      transition: var(--transition);
+      transition: all 0.2s ease;
       text-decoration: none;
       text-align: center;
     }
     
     .btn-primary {
-      background: var(--primary);
+      background: #000;
       color: white;
       width: 100%;
-      border: 1px solid var(--primary);
     }
     
     .btn-primary:hover {
-      background: var(--primary-hover);
+      background: #333;
       transform: translateY(-1px);
     }
     
@@ -437,8 +386,8 @@ HTML_TEMPLATE = """
     }
     
     .loader {
-      border: 3px solid rgba(0, 102, 255, 0.1);
-      border-top: 3px solid var(--primary);
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #000;
       border-radius: 50%;
       width: 40px;
       height: 40px;
@@ -454,199 +403,98 @@ HTML_TEMPLATE = """
     
     .alert {
       padding: 1rem 1.5rem;
-      border-radius: var(--radius-md);
-      margin-bottom: 1.8rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
       font-weight: 500;
-      display: flex;
-      align-items: flex-start;
-      border-left: 4px solid transparent;
     }
     
     .alert-danger {
-      background: rgba(239, 68, 68, 0.1);
-      color: var(--danger);
-      border-left-color: var(--danger);
+      background: #fee;
+      color: #c53030;
+      border: 1px solid #fed7d7;
     }
     
     .alert-warning {
-      background: rgba(245, 158, 11, 0.1);
-      color: var(--warning);
-      border-left-color: var(--warning);
+      background: #fffbeb;
+      color: #c05621;
+      border: 1px solid #fef5e7;
     }
     
     .transcript-section {
-      margin-top: 2.5rem;
-      animation: fadeIn 0.6s ease-out;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      margin-top: 2rem;
     }
     
     .transcript-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 1.2rem;
-      flex-wrap: wrap;
-      gap: 1rem;
+      margin-bottom: 1rem;
     }
     
     .transcript-title {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--text-primary);
+      color: #000;
       margin: 0;
     }
     
     .transcript-actions {
       display: flex;
-      gap: 0.6rem;
-      flex-wrap: wrap;
-    }
-    
-    .btn-secondary {
-      background: rgba(0, 0, 0, 0.05);
-      color: var(--text-primary);
-      border: 1px solid var(--border);
-      padding: 0.6rem 1rem;
-      font-size: 0.9rem;
-      border-radius: var(--radius-md);
-      display: flex;
-      align-items: center;
       gap: 0.5rem;
     }
     
+    .btn-secondary {
+      background: #f8f9fa;
+      color: #333;
+      border: 1px solid #e0e0e0;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+    }
+    
     .btn-secondary:hover {
-      background: rgba(0, 0, 0, 0.08);
+      background: #e9ecef;
       transform: translateY(-1px);
     }
     
-    .btn-secondary:active {
-      transform: translateY(0);
-    }
-    
-    .btn-icon {
-      margin-right: 0.25rem;
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      vertical-align: text-bottom;
-      fill: currentColor;
-    }
-    
     .transcript-content {
-      background: rgba(0, 0, 0, 0.02);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 1.8rem;
+      background: #f8f9fa;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 1.5rem;
       white-space: pre-wrap;
-      font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-      font-size: 0.95rem;
-      line-height: 1.7;
-      color: var(--text-primary);
-      max-height: 500px;
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: #333;
+      max-height: 400px;
       overflow-y: auto;
     }
     
     @media (max-width: 768px) {
-      body {
-        padding: 10px;
-      }
-      
       .container {
         padding: 1rem 0.5rem;
-        min-height: auto;
       }
       
       .card {
-        padding: 1.8rem 1.2rem;
-        margin-bottom: 1rem;
+        padding: 1.5rem;
       }
       
       .header h1 {
         font-size: 2rem;
       }
       
-      .header p {
-        font-size: 1rem;
-      }
-      
-      .model-selection {
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-      
-      .transcript-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.8rem;
-      }
-      
-      .transcript-actions {
-        width: 100%;
-        justify-content: space-between;
-      }
-      
       .btn {
-        padding: 0.8rem 1.2rem;
-      }
-      
-      .form-input, .form-select, .file-input {
-        font-size: 16px; /* Prevents zoom on iOS */
+        padding: 0.875rem 1.5rem;
       }
     }
     
     @media (max-width: 480px) {
-      body {
-        padding: 5px;
-      }
-      
       .header h1 {
-        font-size: 1.8rem;
-        margin-bottom: 0.4rem;
-      }
-      
-      .header p {
-        font-size: 0.95rem;
+        font-size: 1.75rem;
       }
       
       .card {
-        padding: 1.5rem 1rem;
-        border-radius: var(--radius-md);
-      }
-      
-      .btn-secondary {
-        padding: 0.5rem 0.8rem;
-        font-size: 0.85rem;
-        flex: 1;
-        justify-content: center;
-      }
-      
-      .transcript-actions {
-        gap: 0.4rem;
-      }
-      
-      .transcript-content {
-        padding: 1.2rem;
-        font-size: 0.9rem;
-        max-height: 400px;
-      }
-    }
-    
-    @media (max-width: 360px) {
-      .header h1 {
-        font-size: 1.6rem;
-      }
-      
-      .card {
-        padding: 1.2rem 0.8rem;
-      }
-      
-      .btn-secondary {
-        padding: 0.4rem 0.6rem;
-        font-size: 0.8rem;
+        padding: 1rem;
       }
     }
   </style>
@@ -691,7 +539,7 @@ HTML_TEMPLATE = """
         </div>
         
         <div class="divider">
-          <span>Input Source</span>
+          <span>OR</span>
         </div>
         
         <div class="form-section">
@@ -717,25 +565,9 @@ HTML_TEMPLATE = """
           <div class="transcript-header">
             <h3 class="transcript-title">Transcript</h3>
             <div class="transcript-actions">
-              <button type="button" class="btn btn-secondary" onclick="copyToClipboard()">
-                <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
-                  <path fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
-                  <path fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
-                </svg>
-                Copy
-              </button>
-              <button type="button" class="btn btn-secondary" onclick="downloadTranscript()">
-                <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
-                  <path fill-rule="evenodd" d="M7.47 10.78a.75.75 0 001.06 0l3.75-3.75a.75.75 0 00-1.06-1.06L8.75 8.44V1.75a.75.75 0 00-1.5 0v6.69L4.78 5.97a.75.75 0 00-1.06 1.06l3.75 3.75zM3.75 13a.75.75 0 000 1.5h8.5a.75.75 0 000-1.5h-8.5z"></path>
-                </svg>
-                Download
-              </button>
-              <button type="button" class="btn btn-secondary" onclick="newTranscription()">
-                <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
-                  <path fill-rule="evenodd" d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.75.75 0 111.06 1.06L9.06 8l3.22 3.22a.75.75 0 11-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 01-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 010-1.06z"></path>
-                </svg>
-                New Transcription
-              </button>
+              <button type="button" class="btn btn-secondary" onclick="copyToClipboard()">Copy</button>
+              <button type="button" class="btn btn-secondary" onclick="downloadTranscript()">Download</button>
+              <button type="button" class="btn btn-secondary" onclick="newTranscription()">New Transcription</button>
             </div>
           </div>
           <div class="transcript-content" id="transcript-content">{{ transcript }}</div>
@@ -748,7 +580,7 @@ HTML_TEMPLATE = """
   </div>
   
   <script>
-    document.getElementById('transcribe-form')?.addEventListener('submit', function() {
+    document.getElementById('transcribe-form').addEventListener('submit', function() {
       document.getElementById('loader').style.display = 'block';
     });
     
@@ -756,17 +588,15 @@ HTML_TEMPLATE = """
       const transcriptText = document.getElementById('transcript-content').textContent;
       navigator.clipboard.writeText(transcriptText).then(function() {
         // Show success feedback
-        const copyBtn = event.target.closest('.btn');
-        const originalHTML = copyBtn.innerHTML;
-        copyBtn.innerHTML = '<svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path fill-rule="evenodd" d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"></path></svg>Copied!';
-        copyBtn.style.background = 'rgba(16, 185, 129, 0.1)';
-        copyBtn.style.color = '#10b981';
-        copyBtn.style.borderColor = '#10b981';
+        const copyBtn = event.target;
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = 'Copied!';
+        copyBtn.style.background = '#28a745';
+        copyBtn.style.color = 'white';
         setTimeout(() => {
-          copyBtn.innerHTML = originalHTML;
-          copyBtn.style.background = '';
-          copyBtn.style.color = '';
-          copyBtn.style.borderColor = '';
+          copyBtn.textContent = originalText;
+          copyBtn.style.background = '#f8f9fa';
+          copyBtn.style.color = '#333';
         }, 2000);
       }).catch(function(err) {
         console.error('Could not copy text: ', err);
