@@ -5,6 +5,8 @@ import subprocess
 import sys
 from flask import Flask, request, render_template_string, redirect, url_for, flash
 from openai import OpenAI
+from pydub import AudioSegment
+import tempfile
 
 # --- Core Transcription Logic ---
 
@@ -64,18 +66,146 @@ def poll_assemblyai(api_key, transcript_id):
 
 # --- OpenAI Whisper Function ---
 
+def combine_transcripts_with_overlap(transcripts, overlap_seconds=5):
+    """Combines transcripts while handling overlap to avoid duplication."""
+    if not transcripts:
+        return ""
+    
+    if len(transcripts) == 1:
+        return transcripts[0]
+    
+    # For now, use simple concatenation with overlap detection
+    # In a more sophisticated implementation, you could use fuzzy matching
+    # to find overlapping text and remove duplicates
+    
+    combined = transcripts[0]
+    
+    for i in range(1, len(transcripts)):
+        current_transcript = transcripts[i]
+        
+        # Simple approach: look for common words at the end of combined
+        # and beginning of current transcript
+        combined_words = combined.split()
+        current_words = current_transcript.split()
+        
+        # Look for overlap (last 10 words of combined vs first 10 words of current)
+        overlap_found = False
+        for overlap_size in range(min(10, len(combined_words), len(current_words)), 0, -1):
+            combined_end = " ".join(combined_words[-overlap_size:])
+            current_start = " ".join(current_words[:overlap_size])
+            
+            if combined_end.lower() == current_start.lower():
+                # Found overlap, remove it from current transcript
+                current_transcript = " ".join(current_words[overlap_size:])
+                overlap_found = True
+                break
+        
+        # Add current transcript to combined
+        if current_transcript.strip():
+            combined += " " + current_transcript
+    
+    return combined
+
+def split_audio_file(file_path, max_size_mb=25, overlap_seconds=5):
+    """Splits audio file into chunks smaller than max_size_mb with overlap."""
+    try:
+        # Load audio file
+        audio = AudioSegment.from_file(file_path)
+        
+        # Calculate chunk duration based on file size
+        file_size = os.path.getsize(file_path)
+        total_duration = len(audio)
+        
+        # Calculate chunk duration (in milliseconds)
+        chunk_duration = int((max_size_mb * 1024 * 1024 / file_size) * total_duration)
+        
+        # Ensure minimum chunk duration (30 seconds)
+        chunk_duration = max(chunk_duration, 30000)
+        
+        # Convert overlap to milliseconds
+        overlap_ms = overlap_seconds * 1000
+        
+        # Split audio into chunks with overlap
+        chunks = []
+        i = 0
+        while i < total_duration:
+            # Calculate end position for this chunk
+            end_pos = min(i + chunk_duration, total_duration)
+            
+            # Extract chunk
+            chunk = audio[i:end_pos]
+            if len(chunk) > 0:
+                chunks.append(chunk)
+            
+            # Move to next chunk with overlap
+            i = end_pos - overlap_ms
+            
+            # If we're at the end, break
+            if i >= total_duration:
+                break
+        
+        return chunks
+    except Exception as e:
+        print(f"--> ERROR splitting audio file: {e}", file=sys.stderr)
+        return None
+
 def transcribe_with_whisper(api_key, file_path):
     """Transcribes audio using OpenAI's Whisper model."""
     print(f"--> Transcribing with Whisper: {file_path}")
     try:
         client = OpenAI(api_key=api_key)
-        with open(file_path, "rb") as audio_file:
-            transcript = client.audio.transcriptions.create(
-                model="whisper-1",
-                file=audio_file
-            )
-        print("--> Whisper transcription complete.")
-        return transcript.text
+        
+        # Check file size
+        file_size = os.path.getsize(file_path)
+        max_size = 25 * 1024 * 1024  # 25MB in bytes
+        
+        if file_size <= max_size:
+            # File is small enough, transcribe directly
+            with open(file_path, "rb") as audio_file:
+                transcript = client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=audio_file
+                )
+            print("--> Whisper transcription complete.")
+            return transcript.text
+        else:
+            # File is too large, split into chunks
+            print(f"--> File size ({file_size / 1024 / 1024:.1f}MB) exceeds 25MB limit. Splitting into chunks...")
+            chunks = split_audio_file(file_path)
+            
+            if not chunks:
+                return "Error: Failed to split audio file into chunks."
+            
+            print(f"--> Split into {len(chunks)} chunks for processing...")
+            
+            # Transcribe each chunk
+            all_transcripts = []
+            for i, chunk in enumerate(chunks):
+                print(f"--> Processing chunk {i+1}/{len(chunks)}...")
+                
+                # Save chunk to temporary file
+                with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as temp_file:
+                    chunk.export(temp_file.name, format="mp3")
+                    temp_path = temp_file.name
+                
+                try:
+                    # Transcribe chunk
+                    with open(temp_path, "rb") as audio_file:
+                        transcript = client.audio.transcriptions.create(
+                            model="whisper-1",
+                            file=audio_file
+                        )
+                    all_transcripts.append(transcript.text)
+                finally:
+                    # Clean up temporary file
+                    if os.path.exists(temp_path):
+                        os.remove(temp_path)
+            
+            # Combine all transcripts with overlap handling
+            combined_transcript = combine_transcripts_with_overlap(all_transcripts, overlap_seconds=5)
+            print("--> Whisper transcription complete (chunked processing).")
+            return combined_transcript
+            
     except Exception as e:
         print(f"--> ERROR during Whisper transcription: {e}", file=sys.stderr)
         return None
@@ -436,15 +566,92 @@ HTML_TEMPLATE = """
       transform: translateY(0);
     }
     
-    .loader {
-      border: 3px solid rgba(0, 102, 255, 0.1);
+
+    
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    
+    .btn-processing {
+      position: relative;
+      color: transparent !important;
+    }
+    
+    .btn-processing::after {
+      content: "Processing...";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 0.9rem;
+    }
+    
+    .processing-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--background);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      display: none;
+    }
+    
+    .processing-content {
+      text-align: center;
+      max-width: 400px;
+      padding: 2rem;
+    }
+    
+    .processing-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+    }
+    
+    .processing-status {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .processing-spinner {
+      border: 3px solid rgba(0, 0, 0, 0.1);
       border-top: 3px solid var(--primary);
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
+      width: 50px;
+      height: 50px;
       animation: spin 1s linear infinite;
-      margin: 2rem auto;
-      display: none;
+      margin: 0 auto 1rem;
+    }
+    
+    .processing-error {
+      color: var(--danger);
+      font-weight: 600;
+    }
+    
+    .processing-content button {
+      margin-top: 1rem;
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: var(--radius-md);
+      background: var(--primary);
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+    
+    .processing-content button:hover {
+      background: var(--primary-hover);
     }
     
     @keyframes spin {
@@ -548,6 +755,30 @@ HTML_TEMPLATE = """
       color: var(--text-primary);
       max-height: 500px;
       overflow-y: auto;
+    }
+    
+    @media (min-width: 768px) {
+      .transcript-section {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      
+      .transcript-content {
+        max-height: 600px;
+        font-size: 1rem;
+        line-height: 1.8;
+      }
+    }
+    
+    @media (min-width: 1024px) {
+      .transcript-section {
+        max-width: 1000px;
+      }
+      
+      .transcript-content {
+        max-height: 700px;
+        padding: 2rem;
+      }
     }
     
     @media (max-width: 768px) {
@@ -675,7 +906,7 @@ HTML_TEMPLATE = """
             <input type="text" class="form-input" id="api_key" name="api_key" placeholder="Enter your API key" required>
           </div>
           
-          <div class="form-group">
+        <div class="form-group">
             <label class="form-label">Transcription Model</label>
             <div class="model-selection">
               <div class="model-option">
@@ -695,22 +926,28 @@ HTML_TEMPLATE = """
         </div>
         
         <div class="form-section">
-          <div class="form-group">
+        <div class="form-group">
             <label for="url" class="form-label">YouTube URL</label>
             <input type="url" class="form-input" id="url" name="url" placeholder="https://www.youtube.com/watch?v=...">
-          </div>
+        </div>
           
-          <div class="form-group">
+        <div class="form-group">
             <label for="file" class="form-label">Upload Audio File</label>
             <input type="file" class="file-input" id="file" name="file" accept="audio/*">
           </div>
         </div>
         
-        <button type="submit" class="btn btn-primary">Transcribe Audio</button>
+        <button type="submit" class="btn btn-primary" id="submit-btn">Transcribe Audio</button>
       </form>
       {% endif %}
       
-      <div id="loader" class="loader"></div>
+      <div id="processing-overlay" class="processing-overlay">
+        <div class="processing-content">
+          <div class="processing-spinner"></div>
+          <div class="processing-title">Transcribing Audio</div>
+          <div id="processing-status" class="processing-status">Preparing transcription...</div>
+        </div>
+      </div>
       
       {% if transcript %}
         <div class="transcript-section">
@@ -749,7 +986,63 @@ HTML_TEMPLATE = """
   
   <script>
     document.getElementById('transcribe-form')?.addEventListener('submit', function() {
-      document.getElementById('loader').style.display = 'block';
+      const submitBtn = document.getElementById('submit-btn');
+      const processingOverlay = document.getElementById('processing-overlay');
+      const processingStatus = document.getElementById('processing-status');
+      const processingTitle = document.querySelector('.processing-title');
+      
+      // Disable button
+      submitBtn.disabled = true;
+      
+      // Show processing overlay
+      processingOverlay.style.display = 'flex';
+      
+      // Update status messages at different intervals
+      setTimeout(() => {
+        processingStatus.textContent = 'Uploading audio file...';
+      }, 1000);
+      
+      setTimeout(() => {
+        processingStatus.textContent = 'Processing with AI model...';
+      }, 3000);
+      
+      setTimeout(() => {
+        processingStatus.textContent = 'Generating transcript...';
+      }, 6000);
+      
+      setTimeout(() => {
+        processingStatus.textContent = 'Finalizing results...';
+      }, 9000);
+      
+      // Check for errors after form submission
+      setTimeout(() => {
+        // Look for error messages in the page
+        const errorAlerts = document.querySelectorAll('.alert-danger');
+        if (errorAlerts.length > 0) {
+          // Show error in processing overlay
+          processingTitle.textContent = 'Transcription Failed';
+          processingStatus.textContent = errorAlerts[0].textContent;
+          processingStatus.style.color = 'var(--danger)';
+          
+          // Hide spinner and show error state
+          const spinner = document.querySelector('.processing-spinner');
+          if (spinner) {
+            spinner.style.display = 'none';
+          }
+          
+          // Add a button to go back
+          setTimeout(() => {
+            const backButton = document.createElement('button');
+            backButton.textContent = 'Try Again';
+            backButton.className = 'btn btn-primary';
+            backButton.style.marginTop = '1rem';
+            backButton.onclick = function() {
+              window.location.reload();
+            };
+            processingStatus.parentNode.appendChild(backButton);
+          }, 2000);
+        }
+      }, 10000); // Check after 10 seconds
     });
     
     function copyToClipboard() {
@@ -799,6 +1092,10 @@ def index():
     transcript = None
     filename = None
     show_form = True
+    
+    # Always show form on GET requests (page refresh, direct access)
+    if request.method == 'GET':
+        return render_template_string(HTML_TEMPLATE, transcript=None, filename=None, show_form=True)
     
     if request.method == 'POST':
         api_key = request.form.get('api_key', '').strip()
@@ -850,7 +1147,7 @@ def index():
         else:
             flash('Please provide a YouTube URL or upload a file.', 'warning')
             return redirect(url_for('index'))
-        
+
         # Handle the new return format
         if isinstance(result, tuple):
             transcript, filename = result
@@ -858,7 +1155,11 @@ def index():
             transcript = result
             filename = None
         
-        if transcript and not transcript.startswith('Error:'):
+        # Check if there was an error
+        if transcript and transcript.startswith('Error:'):
+            flash(transcript, 'danger')
+            return redirect(url_for('index'))
+        elif transcript:
             show_form = False
 
     return render_template_string(HTML_TEMPLATE, transcript=transcript, filename=filename, show_form=show_form)

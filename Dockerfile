@@ -3,6 +3,8 @@ FROM python:3.11-slim
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     yt-dlp \
+    ffmpeg \
+    python3-venv \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
